@@ -1,0 +1,47 @@
+# docker-compose for Open Targets
+# Master copy in https://github.com/Docproc/opentargets_public
+
+version: "3.3"
+services:
+  mrtarget:
+    image: quay.io/opentargets/mrtarget:19.02.1
+    environment:
+      # Location of ElasticSearch server
+      - ELASTICSEARCH_NODES=http://elasticsearch.opentargets:9200 # Check Route53
+      # Ops config - edit the file as necessary
+      - OPS_CONFIG=config/ops.yml
+      # Data config - edit the file as necessary
+      - DATA_CONFIG=config/data.yml
+ 
+     # Note volumes are relative to directory where docker-compose file is
+    volumes:
+      - ./config:/usr/src/app/config
+      - ./log:/usr/src/app/log
+      - ./json:/usr/src/app/json
+      - ./qc:/usr/src/app/qc
+      - ./evidence:/usr/src/app/evidence
+
+  api:
+    image: quay.io/opentargets/rest_api:19.02.1
+    privileged: true
+    ports:
+      - 8080:80
+      - 7443:443
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch.opentargets:9200 # Check Route53
+      - OPENTARGETS_DATA_VERSION=19.03
+
+  webapp:
+    image: quay.io/opentargets/webapp
+    ports:
+      - 80:80
+      - 443:443
+    depends_on:
+      - api
+    environment:
+      - REST_API_SCHEME=http
+      - REST_API_SERVER=api
+      - REST_API_PORT=8080
+      - APIHOST=localhost
+
+# Note start webapp / API with docker-compose up - docker-compose run doesn't map ports
