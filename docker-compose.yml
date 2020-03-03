@@ -32,7 +32,7 @@ services:
       - OPENTARGETS_DATA_VERSION=19.11
 
   webapp:
-    image: quay.io/opentargets/webapp
+    image: quay.io/opentargets/webapp:19.11.4
     ports:
       - 80:80
       - 443:443
